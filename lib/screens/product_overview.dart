@@ -24,6 +24,30 @@ class ProductOverview extends StatefulWidget {
 
 class _ProductOverviewState extends State<ProductOverview> {
   var _showOnlyFavorites = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<ProductProvider>(context).fetchAllProducts().then((value) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
+
   @override
   Widget build(BuildContext context) {
     final productsData = Provider.of<ProductProvider>(context);
@@ -68,25 +92,29 @@ class _ProductOverviewState extends State<ProductOverview> {
           ),
         ],
       ),
-      drawer: AppDrawer(),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(10),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 3 / 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-        ),
-        itemBuilder: (ctx, idx) => ChangeNotifierProvider<Product>.value(
-          value: products[idx],
-          child: const ProductItem(
-              // id: products[idx].id,
-              // title: products[idx].title,
-              // imageUrl: products[idx].imageUrl,
+      drawer: const AppDrawer(),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : GridView.builder(
+              padding: const EdgeInsets.all(10),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 3 / 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
               ),
-        ),
-        itemCount: products.length,
-      ),
+              itemBuilder: (ctx, idx) => ChangeNotifierProvider<Product>.value(
+                value: products[idx],
+                child: const ProductItem(
+                    // id: products[idx].id,
+                    // title: products[idx].title,
+                    // imageUrl: products[idx].imageUrl,
+                    ),
+              ),
+              itemCount: products.length,
+            ),
     );
   }
 }
