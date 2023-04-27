@@ -18,14 +18,21 @@ class _EditProductState extends State<EditProduct> {
   final _imageUrlFocusNode = FocusNode();
   final _form = GlobalKey<FormState>();
 
-  Product _editedProduct = Product(
+  var _editedProduct = Product(
+    id: null,
     title: '',
-    description: '',
     price: 0,
+    description: '',
     imageUrl: '',
-    isFavorite: false,
-    id: '',
   );
+  var _initValues = {
+    'title': '',
+    'description': '',
+    'price': '',
+    'imageUrl': '',
+  };
+  var _isInit = true;
+  var _isLoading = false;
 
   @override
   void initState() {
@@ -43,29 +50,20 @@ class _EditProductState extends State<EditProduct> {
     super.dispose();
   }
 
-  var _isInit = true;
-  var _isLoading = false;
-
-  var _intValues = {
-    'title': '',
-    'price': 0,
-    'description': '',
-    'imageUrl': '',
-  };
-
-  @override
   void didChangeDependencies() {
     if (_isInit) {
       final productId = ModalRoute.of(context)!.settings.arguments as String?;
       if (productId != null) {
-        final editedProd = Provider.of<ProductProvider>(context, listen: false)
+        _editedProduct = Provider.of<ProductProvider>(context, listen: false)
             .findById(productId);
-        _intValues = {
-          'title': editedProd.title,
-          'price': editedProd.price.toString(),
-          'description': editedProd.description,
+        _initValues = {
+          'title': _editedProduct.title,
+          'description': _editedProduct.description,
+          'price': _editedProduct.price.toString(),
+          // 'imageUrl': _editedProduct.imageUrl,
+          'imageUrl': '',
         };
-        _imageUrlController.text = editedProd.imageUrl;
+        _imageUrlController.text = _editedProduct.imageUrl;
       }
     }
     _isInit = false;
@@ -88,17 +86,47 @@ class _EditProductState extends State<EditProduct> {
     setState(() {
       _isLoading = true;
     });
-    if (_editedProduct.id.isNotEmpty) {
-      Provider.of<ProductProvider>(context, listen: false)
-          .updateProduct(_editedProduct.id, _editedProduct);
-      Navigator.of(context).pop();
+    var prodId = _editedProduct.id;
+    print('to edit $prodId');
+    if (prodId != null) {
+      print('we are updating =========');
+      try {
+        await Provider.of<ProductProvider>(context, listen: false)
+            .updateProduct(_editedProduct.id!, _editedProduct);
+        Navigator.of(context).pop();
+      } catch (e) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text(
+              'Something went wrong!',
+            ),
+            content: Text(
+              'Something went wrong! Please try later. ${e.toString()}',
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Okay'),
+              ),
+            ],
+          ),
+        );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     } else {
+      print('we are adding ====== adding ========');
       try {
         await Provider.of<ProductProvider>(context, listen: false)
             .addProduct(_editedProduct);
         Navigator.of(context).pop();
       } catch (e) {
-        await showDialog(
+        showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text(
@@ -148,7 +176,7 @@ class _EditProductState extends State<EditProduct> {
                 child: ListView(
                   children: [
                     TextFormField(
-                      initialValue: _intValues['title'].toString(),
+                      initialValue: _initValues['title'].toString(),
                       decoration: const InputDecoration(
                         labelText: 'Title',
                       ),
@@ -174,7 +202,7 @@ class _EditProductState extends State<EditProduct> {
                       },
                     ),
                     TextFormField(
-                      initialValue: _intValues['price'].toString(),
+                      initialValue: _initValues['price'].toString(),
                       decoration: const InputDecoration(
                         labelText: 'Price',
                       ),
@@ -209,7 +237,7 @@ class _EditProductState extends State<EditProduct> {
                       decoration: const InputDecoration(
                         labelText: 'Description',
                       ),
-                      initialValue: _intValues['description'].toString(),
+                      initialValue: _initValues['description'].toString(),
                       textInputAction: TextInputAction.next,
                       maxLines: 3,
                       keyboardType: TextInputType.multiline,

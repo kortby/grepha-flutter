@@ -14,7 +14,7 @@ class ProductProvider with ChangeNotifier {
 
   Future<void> fetchAllProducts() async {
     var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/product.json');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json');
     try {
       final response = await http.get(url!);
       final data = json.decode(response.body) as Map<String, dynamic>;
@@ -43,7 +43,7 @@ class ProductProvider with ChangeNotifier {
 
   Future<void> addProduct(Product prod) async {
     var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/product.json');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json');
     try {
       final response = await http.post(
         url!,
@@ -51,7 +51,7 @@ class ProductProvider with ChangeNotifier {
           'title': prod.title,
           'description': prod.description,
           'price': prod.price,
-          'imageUrl': prod.title,
+          'imageUrl': prod.imageUrl,
           'isFavorite': prod.isFavorite,
         }),
       );
@@ -69,11 +69,21 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  void updateProduct(String id, Product prod) {
-    print('updating provider ======');
+  Future<void> updateProduct(String id, Product prod) async {
     final productToUpdateIndex =
         _items.indexWhere((product) => product.id == id);
     if (productToUpdateIndex >= 0) {
+      var url = Uri.tryParse(
+          'https://grepha-2bfb7-default-rtdb.firebaseio.com/products/$id.json');
+      await http.patch(
+        url!,
+        body: json.encode({
+          'title': prod.title,
+          'description': prod.description,
+          'imageUrl': prod.imageUrl,
+          'price': prod.price,
+        }),
+      );
       _items[productToUpdateIndex] = prod;
     }
     notifyListeners();
@@ -83,8 +93,15 @@ class ProductProvider with ChangeNotifier {
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  void deleteProduct(String id) {
-    _items.removeWhere((prod) => prod.id == id);
+  void deleteProduct(String id) async {
+    var url = Uri.tryParse(
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products/$id.json');
+    final existingProdIdx = _items.indexWhere((element) => element.id == id);
+    final existingProd = _items[existingProdIdx];
+    _items.removeAt(existingProdIdx);
+    await http.delete(url!).catchError((_) {
+      _items.insert(existingProdIdx, existingProd);
+    });
     notifyListeners();
   }
 }
