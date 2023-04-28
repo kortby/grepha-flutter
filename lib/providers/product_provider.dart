@@ -9,13 +9,17 @@ import 'package:http/http.dart' as http;
 class ProductProvider with ChangeNotifier {
   List<Product> _items = [];
 
+  final String authToken;
+
+  ProductProvider(this.authToken, this._items);
+
   List<Product> get items {
     return [..._items];
   }
 
   Future<void> fetchAllProducts() async {
-    var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json');
+    final url = Uri.tryParse(
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json?auth=$authToken');
     try {
       final response = await http.get(url!);
       final data = json.decode(response.body) as Map<String, dynamic>;

@@ -22,8 +22,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(
           value: AuthProvider(),
         ),
-        ChangeNotifierProvider.value(
-          value: ProductProvider(),
+        ChangeNotifierProxyProvider<AuthProvider, ProductProvider>(
+          create: (_) => ProductProvider('_', []),
+          update: (ctx, auth, prev) =>
+              ProductProvider(auth.token!, prev!.items),
         ),
         ChangeNotifierProvider.value(
           value: CartProvider(),
@@ -32,23 +34,25 @@ class MyApp extends StatelessWidget {
           value: OrderProvider(),
         ),
       ],
-      child: MaterialApp(
-        title: 'Shopping',
-        theme: ThemeData(
-          primarySwatch: Colors.purple,
-          colorScheme: ColorScheme.fromSwatch().copyWith(
-            secondary: Colors.deepOrange,
+      child: Consumer<AuthProvider>(
+        builder: (ctx, authData, _) => MaterialApp(
+          title: 'Shopping',
+          theme: ThemeData(
+            primarySwatch: Colors.purple,
+            colorScheme: ColorScheme.fromSwatch().copyWith(
+              secondary: Colors.deepOrange,
+            ),
+            fontFamily: 'Lato',
           ),
-          fontFamily: 'Lato',
+          home: authData.isAuth ? ProductOverview() : AuthScreen(),
+          routes: {
+            ProductDetail.routeName: (ctx) => const ProductDetail(),
+            Cart.routeName: (ctx) => const Cart(),
+            Orders.routeName: (ctx) => const Orders(),
+            UserProducts.routeName: (ctx) => const UserProducts(),
+            EditProduct.routeName: (ctx) => const EditProduct(),
+          },
         ),
-        home: AuthScreen(),
-        routes: {
-          ProductDetail.routeName: (ctx) => const ProductDetail(),
-          Cart.routeName: (ctx) => const Cart(),
-          Orders.routeName: (ctx) => const Orders(),
-          UserProducts.routeName: (ctx) => const UserProducts(),
-          EditProduct.routeName: (ctx) => const EditProduct(),
-        },
       ),
     );
   }
