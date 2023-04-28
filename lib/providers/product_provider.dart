@@ -10,8 +10,9 @@ class ProductProvider with ChangeNotifier {
   List<Product> _items = [];
 
   final String authToken;
+  final String userId;
 
-  ProductProvider(this.authToken, this._items);
+  ProductProvider(this.authToken, this._items, this.userId);
 
   List<Product> get items {
     return [..._items];
@@ -25,6 +26,11 @@ class ProductProvider with ChangeNotifier {
       final data = json.decode(response.body) as Map<String, dynamic>;
       List<Product> loadedData = [];
       if (data == null) return;
+      // fetch fav
+      final favUrl = Uri.tryParse(
+          'https://grepha-2bfb7-default-rtdb.firebaseio.com/userFavorites/$userId.json?auth=$authToken');
+      final favResponse = await http.get(favUrl!);
+      final favData = json.decode(favResponse.body);
       data.forEach((key, value) {
         loadedData.add(
           Product(
@@ -33,7 +39,7 @@ class ProductProvider with ChangeNotifier {
             description: value['description'],
             price: value['price'],
             imageUrl: value['imageUrl'],
-            isFavorite: value['isFavorite'],
+            isFavorite: favData == null ? false : favData[key] ?? false,
           ),
         );
       });
@@ -59,7 +65,6 @@ class ProductProvider with ChangeNotifier {
           'description': prod.description,
           'price': prod.price,
           'imageUrl': prod.imageUrl,
-          'isFavorite': prod.isFavorite,
         }),
       );
       final product = Product(

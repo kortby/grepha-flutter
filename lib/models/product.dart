@@ -20,26 +20,30 @@ class Product with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavoriteStatus(String prodId, String token) async {
+  Future<void> toggleFavoriteStatus(
+    String prodId,
+    String token,
+    String userId,
+  ) async {
     var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products/$prodId.json?auth=$token');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/userFavorites/$userId/$prodId.json?auth=$token');
     final oldStatus = isFavorite;
     isFavorite = !oldStatus;
     notifyListeners();
     try {
-      final response = await http.patch(
+      final response = await http.put(
         url!,
-        body: json.encode({
-          'isFavorite': isFavorite,
-        }),
+        body: json.encode(
+          isFavorite,
+        ),
       );
       if (response.statusCode >= 400) {
         isFavorite = oldStatus;
       }
+      notifyListeners();
     } catch (e) {
       isFavorite = oldStatus;
       throw e;
-      notifyListeners();
     }
   }
 }
