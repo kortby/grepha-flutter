@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shop/models/http_exception.dart';
+import '../environment/firebase.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _token;
@@ -12,7 +13,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> _authenticate(
       String email, String password, String urlSegment) async {
     final url = Uri.tryParse(
-        'https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=AIzaSyAroOjTVYKX7zPdjIbZ68FXVKlY5cegcIw');
+        'https://identitytoolkit.googleapis.com/v1/accounts:$urlSegment?key=${Firebase.firebaseKey}');
     try {
       final response = await http.post(
         url!,
