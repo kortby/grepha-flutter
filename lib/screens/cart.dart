@@ -48,7 +48,9 @@ class Cart extends StatelessWidget {
                         ? null
                         : () async {
                             _isLoading = true;
-                            await Provider.of<OrderProvider>(context).addOrder(
+                            await Provider.of<OrderProvider>(context,
+                                    listen: false)
+                                .addOrder(
                               cart.items.values.toList(),
                               cart.totalAmount,
                             );

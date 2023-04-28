@@ -1,25 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop/models/product.dart';
+import 'package:shop/providers/auth_provider.dart';
 import 'package:shop/providers/cart_provider.dart';
 import 'package:shop/screens/product_detail.dart';
 
 class ProductItem extends StatelessWidget {
-  // final String id;
-  // final String title;
-  // final String imageUrl;
-
   const ProductItem({
     Key? key,
-    // required this.id,
-    // required this.title,
-    // required this.imageUrl,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // final product = Provider.of<Product>(context);
     final cart = Provider.of<CartProvider>(context);
+    final authData = Provider.of<AuthProvider>(context, listen: false);
     return Consumer<Product>(
       builder: (ctx, product, child) => ClipRRect(
         borderRadius: BorderRadius.circular(10),
@@ -28,7 +22,7 @@ class ProductItem extends StatelessWidget {
             backgroundColor: Colors.black54,
             leading: IconButton(
               onPressed: () {
-                product.toggleFavoriteStatus(product.id!);
+                product.toggleFavoriteStatus(product.id!, authData.token!);
               },
               icon: Icon(
                   product.isFavorite ? Icons.favorite : Icons.favorite_outline),

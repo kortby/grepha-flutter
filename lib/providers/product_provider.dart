@@ -28,12 +28,13 @@ class ProductProvider with ChangeNotifier {
       data.forEach((key, value) {
         loadedData.add(
           Product(
-              id: key,
-              title: value['title'],
-              description: value['description'],
-              price: value['price'],
-              imageUrl: value['imageUrl'],
-              isFavorite: value['isFavorite']),
+            id: key,
+            title: value['title'],
+            description: value['description'],
+            price: value['price'],
+            imageUrl: value['imageUrl'],
+            isFavorite: value['isFavorite'],
+          ),
         );
       });
       _items = loadedData;
@@ -49,7 +50,7 @@ class ProductProvider with ChangeNotifier {
 
   Future<void> addProduct(Product prod) async {
     var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json?auth=$authToken');
     try {
       final response = await http.post(
         url!,
@@ -80,7 +81,7 @@ class ProductProvider with ChangeNotifier {
         _items.indexWhere((product) => product.id == id);
     if (productToUpdateIndex >= 0) {
       var url = Uri.tryParse(
-          'https://grepha-2bfb7-default-rtdb.firebaseio.com/products/$id.json');
+          'https://grepha-2bfb7-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken');
       await http.patch(
         url!,
         body: json.encode({
@@ -101,7 +102,7 @@ class ProductProvider with ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products/$id.json');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken');
     final existingProdIdx = _items.indexWhere((element) => element.id == id);
     var existingProd = _items[existingProdIdx];
     _items.removeAt(existingProdIdx);
