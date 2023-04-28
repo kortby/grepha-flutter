@@ -14,24 +14,35 @@ class Orders extends StatefulWidget {
 
 class _OrdersState extends State<Orders> {
   @override
-  void initState() {
-    Future.delayed(Duration.zero).then((value) {
-      Provider.of<OrderProvider>(context, listen: false).fetchOrders();
-    });
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final orderData = Provider.of<OrderProvider>(context);
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Your orders'),
-        ),
-        drawer: AppDrawer(),
-        body: ListView.builder(
-          itemBuilder: (ctx, idx) => SingleOrder(order: orderData.orders[idx]),
-          itemCount: orderData.orders.length,
-        ));
+      appBar: AppBar(
+        title: const Text('Your orders'),
+      ),
+      drawer: const AppDrawer(),
+      body: FutureBuilder(
+        future:
+            Provider.of<OrderProvider>(context, listen: false).fetchOrders(),
+        builder: (ctx, dataSnapshot) {
+          if (dataSnapshot.connectionState != ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else {
+            if (dataSnapshot.error == null) {
+              // handle error
+              return Consumer<OrderProvider>(
+                  builder: (ctx, orderData, child) => ListView.builder(
+                        itemBuilder: (ctx, idx) =>
+                            SingleOrder(order: orderData.orders[idx]),
+                        itemCount: orderData.orders.length,
+                      ));
+            }
+          }
+          return const Text('Error Occurred!!');
+        },
+      ),
+    );
   }
 }
