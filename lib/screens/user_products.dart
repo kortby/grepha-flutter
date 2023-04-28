@@ -10,7 +10,8 @@ class UserProducts extends StatelessWidget {
   const UserProducts({Key? key}) : super(key: key);
 
   Future<void> _refreshProducts(BuildContext context) async {
-    await Provider.of<ProductProvider>(context).fetchAllProducts();
+    await Provider.of<ProductProvider>(context, listen: false)
+        .fetchAllProducts();
   }
 
   @override

@@ -87,9 +87,7 @@ class _EditProductState extends State<EditProduct> {
       _isLoading = true;
     });
     var prodId = _editedProduct.id;
-    print('to edit $prodId');
     if (prodId != null) {
-      print('we are updating =========');
       try {
         await Provider.of<ProductProvider>(context, listen: false)
             .updateProduct(_editedProduct.id!, _editedProduct);
@@ -120,7 +118,6 @@ class _EditProductState extends State<EditProduct> {
         });
       }
     } else {
-      print('we are adding ====== adding ========');
       try {
         await Provider.of<ProductProvider>(context, listen: false)
             .addProduct(_editedProduct);

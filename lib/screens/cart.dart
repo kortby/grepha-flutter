@@ -10,6 +10,7 @@ class Cart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool _isLoading = false;
     final cart = Provider.of<CartProvider>(context);
     return Scaffold(
       appBar: AppBar(
@@ -43,18 +44,23 @@ class Cart extends StatelessWidget {
                       foregroundColor:
                           MaterialStateProperty.all<Color>(Colors.blue),
                     ),
-                    onPressed: () {
-                      Provider.of<OrderProvider>(context, listen: false)
-                          .addOrder(
-                        cart.items.values.toList(),
-                        cart.totalAmount,
-                      );
-                      cart.clearCart();
-                    },
-                    child: const Text(
-                      'ORDER NOW',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    onPressed: (cart.totalAmount <= 0 || _isLoading)
+                        ? null
+                        : () async {
+                            _isLoading = true;
+                            await Provider.of<OrderProvider>(context).addOrder(
+                              cart.items.values.toList(),
+                              cart.totalAmount,
+                            );
+                            _isLoading = false;
+                            cart.clearCart();
+                          },
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text(
+                            'ORDER NOW',
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
                 ],
               ),
