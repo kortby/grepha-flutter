@@ -9,18 +9,20 @@ import 'package:http/http.dart' as http;
 class ProductProvider with ChangeNotifier {
   List<Product> _items = [];
 
-  final String authToken;
-  final String userId;
+  final String? authToken;
+  final String? userId;
 
-  ProductProvider(this.authToken, this._items, this.userId);
+  ProductProvider(this.authToken, this.userId, this._items);
 
   List<Product> get items {
     return [..._items];
   }
 
-  Future<void> fetchAllProducts() async {
+  Future<void> fetchAllProducts([bool fillterByUser = false]) async {
+    final urlFilter =
+        fillterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
     final url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json?auth=$authToken');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/products.json?auth=$authToken&$urlFilter');
     try {
       final response = await http.get(url!);
       final data = json.decode(response.body) as Map<String, dynamic>;
@@ -65,6 +67,7 @@ class ProductProvider with ChangeNotifier {
           'description': prod.description,
           'price': prod.price,
           'imageUrl': prod.imageUrl,
+          'creatorId': userId,
         }),
       );
       final product = Product(

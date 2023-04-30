@@ -9,6 +9,7 @@ import 'package:shop/screens/cart.dart';
 import 'package:shop/screens/orders.dart';
 import 'package:shop/screens/product_detail.dart';
 import 'package:shop/screens/product_overview.dart';
+import 'package:shop/screens/splash.dart';
 import 'package:shop/screens/user_products.dart';
 import 'package:shop/screens/edit_product.dart';
 
@@ -19,21 +20,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(
-          value: AuthProvider(),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
         ),
         ChangeNotifierProxyProvider<AuthProvider, ProductProvider>(
-          create: (_) => ProductProvider('_', [], ''),
-          update: (ctx, auth, prev) => ProductProvider(
-              auth.token!, prev == null ? [] : prev.items, auth.userId),
+          create: (context) => ProductProvider(
+            Provider.of<AuthProvider>(context, listen: false).token,
+            Provider.of<AuthProvider>(context, listen: false).userId,
+            [],
+          ),
+          update: (context, auth, prev) => ProductProvider(
+            auth.token,
+            auth.userId,
+            prev == null ? [] : prev.items,
+          ),
         ),
         ChangeNotifierProvider.value(
           value: CartProvider(),
         ),
         ChangeNotifierProxyProvider<AuthProvider, OrderProvider>(
-          create: (_) => OrderProvider('_', []),
-          update: (ctx, auth, prev) =>
-              OrderProvider(auth.token!, prev == null ? [] : prev.orders),
+          create: (_) => OrderProvider('', '', []),
+          update: (context, auth, prev) => OrderProvider(
+              auth.token!, auth.userId, prev == null ? [] : prev.orders),
         ),
       ],
       child: Consumer<AuthProvider>(
@@ -46,7 +54,16 @@ class MyApp extends StatelessWidget {
             ),
             fontFamily: 'Lato',
           ),
-          home: authData.isAuth ? ProductOverview() : AuthScreen(),
+          home: authData.isAuth
+              ? ProductOverview()
+              : FutureBuilder(
+                  future: authData.tryAutoLoing(),
+                  builder: (context, authResultSnapshot) =>
+                      authResultSnapshot.connectionState ==
+                              ConnectionState.waiting
+                          ? const Splash()
+                          : AuthScreen(),
+                ),
           routes: {
             ProductDetail.routeName: (ctx) => const ProductDetail(),
             Cart.routeName: (ctx) => const Cart(),

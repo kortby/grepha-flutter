@@ -22,8 +22,9 @@ class Order {
 class OrderProvider with ChangeNotifier {
   List<Order> _orders = [];
   final String authToken;
+  final String userId;
 
-  OrderProvider(this.authToken, this._orders);
+  OrderProvider(this.authToken, this.userId, this._orders);
 
   List<Order> get orders {
     return [..._orders];
@@ -32,7 +33,7 @@ class OrderProvider with ChangeNotifier {
   Future<void> addOrder(List<CartItem> cartProduct, double total) async {
     final timestamp = DateTime.now();
     var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/orders.json?auth=$authToken');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken');
     final response = await http.post(
       url!,
       body: json.encode({
@@ -61,7 +62,7 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> fetchOrders() async {
     var url = Uri.tryParse(
-        'https://grepha-2bfb7-default-rtdb.firebaseio.com/orders.json?auth=$authToken');
+        'https://grepha-2bfb7-default-rtdb.firebaseio.com/orders/$userId.json?auth=$authToken');
     final response = await http.get(url!);
     final List<Order> loadedOrders = [];
     final extractedData = json.decode(response.body) as Map<String, dynamic>;
